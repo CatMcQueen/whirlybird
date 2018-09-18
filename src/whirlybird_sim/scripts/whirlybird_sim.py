@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import rospy
+#import rospy
 from whirlybird_msgs.msg import Whirlybird
 from whirlybird_msgs.msg import Command
 
@@ -173,7 +173,7 @@ class WhirlybirdSim():
         # Implement Dynamics for Accelerations Here    #
 	c = damping force
 	dpdq = bias
-	q = 
+	q =
 	p = 
 
         ################################################
