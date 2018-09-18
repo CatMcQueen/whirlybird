@@ -10,6 +10,6 @@
   <node name="rviz" pkg="rviz" type="rviz" args="-d $(find whirlybird_description)/rviz/whirlybird.rviz" required="true"/>
 
   <rosparam command="load" file="$(find whirlybird_sim)/param/whirlybird.yaml" ns="whirlybird" />
-  <node pkg="whirlybird_sim" type="whirlybird_sim.py" name="whirlybird_sim"/>
+  <node pkg="whirlybird_sim" type="whirlybird_sim.py" name="whirlybird_sim" output="screen" />
 
 </launch>
