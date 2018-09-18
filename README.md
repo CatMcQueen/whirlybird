@@ -1,5 +1,7 @@
 # whirlybird ROS workspace
 
+This is New!!
+
 This is the student workspace for the whirlybird. It contains all the necessary submodules
 to run the whirlybird. Before you install the whirlybird workspace, you will first need to 
 configure ROS. This is done by running the following commands in a terminal.
