@@ -38,18 +38,18 @@ class WhirlybirdSim():
         l= .9
         h = 1.1
 
-        self.g  = self.param['g']
-        self.l1 = np.random.uniform(low=l, high=h)*self.param['l1']
-        self.l2 = np.random.uniform(low=l, high=h)*self.param['l2']
-        self.m1 = np.random.uniform(low=l, high=h)*self.param['m1']
-        self.m2 = np.random.uniform(low=l, high=h)*self.param['m2']
-        self.d  = np.random.uniform(low=l, high=h)*self.param['d']
-        self.h  = np.random.uniform(low=l, high=h)*self.param['h']
-        self.r  = np.random.uniform(low=l, high=h)*self.param['r']
-        self.Jx = np.random.uniform(low=l, high=h)*self.param['Jx']
-        self.Jy = np.random.uniform(low=l, high=h)*self.param['Jy']
-        self.Jz = np.random.uniform(low=l, high=h)*self.param['Jz']
-        self.km = self.param['km']
+        self.g  = self.param['g']				    # gravity
+        self.l1 = np.random.uniform(low=l, high=h)*self.param['l1'] # length 1
+        self.l2 = np.random.uniform(low=l, high=h)*self.param['l2'] # length 2
+        self.m1 = np.random.uniform(low=l, high=h)*self.param['m1'] # mass 1
+        self.m2 = np.random.uniform(low=l, high=h)*self.param['m2'] # mass 2
+        self.d  = np.random.uniform(low=l, high=h)*self.param['d']  # distance
+        self.h  = np.random.uniform(low=l, high=h)*self.param['h']  # height
+        self.r  = np.random.uniform(low=l, high=h)*self.param['r']  # radius
+        self.Jx = np.random.uniform(low=l, high=h)*self.param['Jx'] # 
+        self.Jy = np.random.uniform(low=l, high=h)*self.param['Jy'] # 
+        self.Jz = np.random.uniform(low=l, high=h)*self.param['Jz'] # 
+        self.km = self.param['km']				    #  
 
         # spin
         rospy.spin()
@@ -171,7 +171,10 @@ class WhirlybirdSim():
 
         ################################################
         # Implement Dynamics for Accelerations Here    #
-
+	c = damping force
+	dpdq = bias
+	q = 
+	p = 
 
         ################################################
 
