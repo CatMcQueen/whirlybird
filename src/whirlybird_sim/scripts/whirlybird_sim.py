@@ -171,6 +171,7 @@ class WhirlybirdSim():
 
         ################################################
         # Implement Dynamics for Accelerations Here    #
+        ################################################
 
 	# damping force (3,1)
 	c =  np.array([
@@ -203,7 +204,6 @@ class WhirlybirdSim():
 	qdd = np.linalg.solve(m, right_side)
 	
 	xdot[3:6] = qdd
-        ################################################
 
         return xdot
 
