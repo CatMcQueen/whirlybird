@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-#import rospy
+import rospy
 from whirlybird_msgs.msg import Whirlybird
 from whirlybird_msgs.msg import Command
 
@@ -171,12 +171,39 @@ class WhirlybirdSim():
 
         ################################################
         # Implement Dynamics for Accelerations Here    #
-	c = damping force
-	dpdq = bias
-	q =
-	p = 
-
         ################################################
+
+	# damping force (3,1)
+	c =  np.array([
+	    [-thetad**2*(Jz-Jy)*sphi*cphi + psid**2*(Jz-Jy)*sphi*cphi*ctheta**2 
+	    - thetad*psid*ctheta*(Jx-(Jz-Jy)*(cphi**2-sphi**2))],
+	    [psid**2*stheta*ctheta*(-Jx + m1*l1**2 + m2*l2**2 + Jy*sphi**2 + Jz*cphi**2) -
+	    2*phid*thetad*(Jz-Jy)*sphi*cphi - phid*psid*ctheta*(-Jx + (Jz-Jy)*(cphi**2-sphi**2))],
+	    [thetad**2*(Jz-Jy)*sphi*cphi*stheta-thetad*phid*ctheta*(Jx + (Jz-Jy)*(cphi**2-sphi**2)) -
+	    2*phid*psid*(Jz-Jy)*ctheta**2*sphi*cphi +
+	    2*thetad*psid*stheta*ctheta*(Jx-m1*l1**2 - m2*l2**2 - Jy*sphi**2 - Jz*cphi**2)]])[0]
+
+	#bias (3,1)
+	dp_dq = np.array([[0], [(m1*l1 -m2*l2)*g*ctheta], [0]])	
+
+	#motion (3,3)
+	m = np.array([[Jx, 0, -Jx*stheta],
+                [0, m1*l1**2 + m2*l2**2 + Jy*cphi**2 + Jz*sphi**2, (Jy-Jz)*sphi*cphi*ctheta],
+                [-Jx*stheta, (Jy-Jz)*sphi*cphi*ctheta,
+                (m1*l1**2 + m2*l2**2 + Jy*sphi**2 + Jz*cphi**2)*ctheta**2 + Jx*stheta**2]])
+
+	#general position coordinate (3,1)
+	qarr = [[d*(fl-fr)], [l1*(fl+fr)*cphi], [l1*(fl+fr)*ctheta*sphi + d*(fr - fl) * stheta]]
+	q = np.array(qarr) 
+	q = np.reshape(q, (3,1))
+	
+	# (3,1)
+	right_side = q - dp_dq- c
+
+	#qdd
+	qdd = np.linalg.solve(m, right_side)
+	
+	xdot[3:6] = qdd
 
         return xdot
 
