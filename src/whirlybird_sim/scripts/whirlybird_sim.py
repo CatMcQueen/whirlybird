@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import rospy
+#import rospy
 from whirlybird_msgs.msg import Whirlybird
 from whirlybird_msgs.msg import Command
 
