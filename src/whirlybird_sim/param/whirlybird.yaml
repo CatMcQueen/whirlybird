@@ -9,7 +9,9 @@ r: 0.12
 Jx: 0.0047
 Jy: 0.0014
 Jz: 0.0041
-km: 100. #Note this is not the correct PWM gain. This will be found in lab4.
+PWMe: 44
+Fe: m1*g-m2*l2*g/l2 #given in 4.3 of controlbook
+km: Fe/(2*PWMe)
 sigma_gyro: 8.7266e-5
 sigma_pixel: 0.05
 theta_max: 0.785398
@@ -18,3 +20,5 @@ psi_max: 1.5708
 psi_min: -1.5708
 phi_max: 1.309
 phi_min: -1.309
+
+
