@@ -9,9 +9,9 @@ r: 0.12
 Jx: 0.0047
 Jy: 0.0014
 Jz: 0.0041
-PWMe: 44
-Fe: m1*g-m2*l2*g/l2 #given in 4.3 of controlbook
-km: Fe/(2*PWMe)
+PWMe: 44.0
+Fe: 0.891*9.81-1.0*0.3048*9.81/0.3048 #m1*g-m2*l2*g/l2 (CB 4.3)
+km: (0.891*9.81-1.0*0.3048*9.81/0.3048)/(2*44.0) #Fe/(2*PWMe)
 sigma_gyro: 8.7266e-5
 sigma_pixel: 0.05
 theta_max: 0.785398
