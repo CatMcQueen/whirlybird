@@ -123,9 +123,9 @@ class WhirlybirdSim():
                 thetad *= -0.5 # bounce against limit
 
         # pack back up
-        self.state[0] = phi
-        self.state[1] = theta
-        self.state[2] = psi
+        self.state[0] = phi # roll
+        self.state[1] = theta # pitch
+        self.state[2] = psi # yaw
         self.state[3] = phid + np.random.normal(0, 0.001, 1)
         self.state[4] = thetad + np.random.normal(0, 0.001, 1)
         self.state[5] = psid
@@ -204,7 +204,7 @@ class WhirlybirdSim():
 	
 	xdot[3:6] = qdd
         ################################################
-
+	xdot[0,2,3,5] = 0 # this pins psi, psidot, phi, phidot
         return xdot
 
     def encoders(self):

@@ -41,7 +41,7 @@ class Controller():
         Jy = self.param['Jy']
         Jz = self.param['Jz']
         km = self.param['km']
-
+	sat_val = .7
 
         # Roll Gains
         self.P_phi_ = 0.0
@@ -66,9 +66,9 @@ class Controller():
         self.prev_psi = 0.0
         self.Int_psi = 0.0
 
-        self.prev_time = rospy.Time.now()
+	self.prev_time = rospy.Time.now()
 
-        self.Fe = 0.0 #Note this is not the correct value for Fe, you will have to find that yourself
+        self.Fe = (m1*l1 - m2*l2)*g*cos(self.theta_r)/l1     ## we did finish editing this. Right value
 
         self.command_sub_ = rospy.Subscriber('whirlybird', Whirlybird, self.whirlybirdCallback, queue_size=5)
         self.psi_r_sub_ = rospy.Subscriber('psi_r', Float32, self.psiRCallback, queue_size=5)
@@ -105,14 +105,24 @@ class Controller():
         theta = msg.pitch
         psi = msg.yaw
 
+	kp = 3/1.152
+	kd = 4/1.152
+
         # Calculate dt (This is variable)
         now = rospy.Time.now()
         dt = (now-self.prev_time).to_sec()
         self.prev_time = now
-        
         ##################################
         # Implement your controller here
+	
+	error = -theta+self.theta_r
+	theta_dot = (theta - self.prev_theta)/dt
+	Ftilde = kp*error - kd*theta_dot
+	F = self.Fe + Ftilde
 
+	left_force, right_force = F/2, F/2
+
+	self.prev_theta = theta
 
         ##################################
 
@@ -120,13 +130,13 @@ class Controller():
         l_out = left_force/km
         if(l_out < 0):
             l_out = 0
-        elif(l_out > 1.0):
+        elif(l_out > 0.7):
             l_out = 1.0
 
         r_out = right_force/km
         if(r_out < 0):
             r_out = 0
-        elif(r_out > 1.0):
+        elif(r_out > 0.7):
             r_out = 1.0
 
         # Pack up and send command
