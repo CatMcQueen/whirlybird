@@ -306,10 +306,9 @@ class Controller():
 
 	#lateral
 	lat_error = -psi_observer + self.psi_r
-	lat_prev_error = -self.prev_psi + self.psi_r
+	lat_prev_error = -self.prev_psi_observer + self.psi_r
 	lat_error_dot = (lat_error - lat_prev_error)/dt
 	
-
 	self.lat_integrator = self.lat_integrator + dt/2.0 * (lat_error + lat_prev_error)
 
 	self.phi_dot = beta*self.phi_dot + (1-beta)*((phi - self.prev_phi)/dt)
@@ -329,6 +328,7 @@ class Controller():
 	self.prev_psi = psi
 	self.prev_phi = phi
 	self.prev_theta_observer = theta_observer
+	self.prev_psi_observer = psi_observer
 
         ##################################
 
