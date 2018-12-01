@@ -13,6 +13,7 @@
 import rospy
 import time
 import numpy as np
+import control as cnt
 from whirlybird_msgs.msg import Command
 from whirlybird_msgs.msg import Whirlybird
 from std_msgs.msg import Float32
@@ -54,6 +55,8 @@ class Controller():
         self.Int_phi = 0.0
         self.prev_phi = 0.0
 
+	self.phi_dot = 0.0
+
         # Pitch Gains
         self.theta_r = 0.0
         self.P_theta_ = 0.0
@@ -61,6 +64,9 @@ class Controller():
         self.D_theta_ = 0.0
         self.prev_theta = 0.0
         self.Int_theta = 0.0
+
+	self.theta_dot = 0.0
+	self.thetae = 0.0
 
         # Yaw Gains
         self.psi_r = 0.0
@@ -70,6 +76,8 @@ class Controller():
         self.prev_psi = 0.0
         self.Int_psi = 0.0
 
+	self.psi_dot = 0.0
+
 	self.prev_time = rospy.Time.now()
 
 	theta_init = 0.0
@@ -77,8 +85,108 @@ class Controller():
 	self.prev_dirtyd_theta = 0.0
 	self.dirtyd_psi = 0.0
 	self.prev_dirtyd_psi = 0.0
-        self.Fe = (m1*l1 - m2*l2)*g*np.cos(theta_init)/l1     ## we did finish editing this. Right value
+        self.Fe = (m1*l1 - m2*l2)*g*np.cos(theta_init)/l1
 
+	self.Klat = 0.0
+	self.Klon = 0.0
+	self.K1lon = 0.0
+	self.K1lat = 0.0
+	self.lat_integrator = 0.0
+
+	self.kilon = 0.0
+	self.kilat = 0.0
+	self.lon_integrator = 0.0
+
+	zeta = .7
+	tr = 1.0 #1.4
+	numer = 2.2
+	wn = numer/tr
+	b0 = 1.152
+
+	tr_phi = .3
+	tr_psi = 5*tr_phi
+	zeta_lat = .8
+	numer_lat = 2.2
+	wn_phi = numer_lat/tr_phi
+	wn_psi = numer_lat/tr_psi
+	bpsi = l2 * self.Fe / (m1*l1**2 + m2*l2**2 + Jz)
+
+        self.int_pol_lon = -wn/2.0
+        self.int_pol_lat = -wn_psi/2.0
+
+
+	#longitude Matrices
+	Alon = np.matrix([[0.0, 1.0],
+			  [(m1*l1-m2*l2)*g*np.sin(self.thetae)/(m1*(l1**2)+m2*(l2**2)+Jy), 0.0]])
+
+	Blon = np.matrix([[0.0],
+			  [l1/(m1*(l1**2)+m2*(l2**2)+Jy)]])
+
+	Clon = np.matrix([[1.0, 0.0]])
+
+	A1lon = np.matrix([[0.0, 1.0, 0.0],
+			  [(m1*l1-m2*l2)*g*np.sin(self.thetae)/(m1*(l1**2)+m2*(l2**2)+Jy), 0.0, 0.0],
+			  [-1.0, 0.0, 0.0]])
+
+	B1lon = Blon = np.matrix([[0.0],
+			  [l1/(m1*(l1**2)+m2*(l2**2)+Jy)],
+			  [0.0]])
+	
+
+	des_char_poly_lon = np.convolve([1, 2*zeta*wn, wn**2], np.poly(self.int_pol_lon))
+
+	des_poles_lon = np.roots(des_char_poly_lon)
+
+	if np.linalg.matrix_rank(cnt.ctrb(A1lon, B1lon)) != 3:
+		print("The longitudinal system is not controllable")
+	else:
+		self.K1lon = cnt.place(A1lon, B1lon, des_poles_lon)
+		self.Klon = np.matrix([self.K1lon.item(0), self.K1lon.item(1)])
+		self.kilon = self.K1lon.item(2)
+		print("Klon: ", self.Klon, "kilon: ", self.kilon)
+
+	#latitude Matrices
+
+	Alat = np.matrix([[0.0, 0.0, 1.0, 0.0],
+			  [0.0, 0.0, 0.0, 1.0],
+			  [0.0, 0.0, 0.0, 0.0],
+			  [l1*self.Fe/(m1*(l1**2)+m2*(l2**2)+Jz), 0.0, 0.0, 0.0]])
+
+	Blat = np.matrix([[0.0],
+			  [0.0],
+			  [1/Jx],
+			  [0.0]])
+
+	Clat = np.matrix([[1.0, 0.0, 0.0, 0.0],
+			  [0.0, 1.0, 0.0, 0.0]])
+
+	A1lat = np.matrix([[0.0, 0.0, 1.0, 0.0, 0.0],
+			  [0.0, 0.0, 0.0, 1.0, 0.0],
+			  [0.0, 0.0, 0.0, 0.0, 0.0],
+			  [l1*self.Fe/(m1*(l1**2)+m2*(l2**2)+Jz), 0.0, 0.0, 0.0, 0.0],
+			  [0.0, -1.0, 0.0, 0.0, 0.0]])
+
+	B1lat = Blat = np.matrix([[0.0],
+			  [0.0],
+			  [1/Jx],
+			  [0.0],
+			  [0.0]])
+
+	des_char_poly_lat = np.convolve(np.convolve([1, 2*zeta*wn_psi, wn_psi**2],
+					[1, 2*zeta*wn_phi, wn_phi**2]), np.poly(self.int_pol_lat))
+	
+	des_poles_lat = np.roots(des_char_poly_lat)
+
+	#print("controllability matrix: ", cnt.ctrb(Alat, Blat))
+	#print("controllability rank: ", np.linalg.matrix_rank(cnt.ctrb(A1lat, B1lat)))
+
+	if np.linalg.matrix_rank(cnt.ctrb(A1lat, B1lat)) != 5:
+		print("The lateral system is not controllable")
+	else:
+		self.K1lat = cnt.place(A1lat, B1lat, des_poles_lat)
+		self.Klat = np.matrix([self.K1lat.item(0), self.K1lat.item(1), self.K1lat.item(2), self.K1lat.item(3)])
+		self.kilat = self.K1lat.item(4)
+		
         self.command_sub_ = rospy.Subscriber('whirlybird', Whirlybird, self.whirlybirdCallback, queue_size=5)
         self.psi_r_sub_ = rospy.Subscriber('psi_r', Float32, self.psiRCallback, queue_size=5)
         self.theta_r_sub_ = rospy.Subscriber('theta_r', Float32, self.thetaRCallback, queue_size=5)
@@ -91,7 +199,6 @@ class Controller():
 
     def thetaRCallback(self, msg):
         self.theta_r = msg.data
-
 
     def psiRCallback(self, msg):
         self.psi_r = msg.data
@@ -114,87 +221,70 @@ class Controller():
         theta = msg.pitch
         psi = msg.yaw
 
-        zeta = .7
-	tr = 1.4
-	numer = 2.2 # .5*np.pi/np.sqrt(1 - zeta**2) # 2.2
-	wn = numer/tr
-	b0 = 1.152
-
-	tr_lat = .20
-	tr_psi = 3
-	zeta_lat = .9
-	numer_lat = 2.2 #.5*np.pi/np.sqrt(1.0 - zeta_lat**2) #2.2
-	wn_lat = numer_lat/tr_lat
-	wn_psi = numer_lat/tr_psi
-
-	Fe = (m1*l1 - m2*l2)*g*np.cos(theta)/l1
-	bpsi = l2 * self.Fe / (m1*l1**2 + m2*l2**2 + Jz)
-
-	kp_theta = wn**2 / b0
-	ki_theta = 3
-
-	kd_theta = 2.0*zeta*wn / b0
-
-	kp_phi = wn_lat**2 * Jx
-	ki_phi = 0
-	kd_phi = wn_lat * 2.0 * zeta_lat * Jx
-
-	kp_psi = wn_psi**2 / bpsi
-	ki_psi = .07
-	kd_psi = 2.0*zeta_lat*wn_psi / bpsi 
-
         # Calculate dt (This is variable)
         now = rospy.Time.now()
         dt = (now-self.prev_time).to_sec()
+	beta = -(2.0*self.sigma - dt)/(2.0*self.sigma + dt)
         self.prev_time = now
         ##################################
         # Controller Implemented here
 
 	#longitudinal	
-	error = -theta + self.theta_r
-	prev_error = self.prev_theta - self.theta_r
-	error_dot = error - prev_error
-	theta_dot = (theta - self.prev_theta)/dt
+	lon_error = -theta + self.theta_r
+	lon_prev_error = -self.prev_theta + self.theta_r
+	lon_error_dot = lon_error - lon_prev_error
+	#theta_dot = (theta - self.prev_theta)/dt
 
-	self.dirtyd_theta = ((2*self.sigma - dt)/(2*self.sigma + dt))*self.prev_dirtyd_theta + 2/(2*self.sigma + dt)*(theta-self.prev_theta)
+	print("theta: ", theta, "theta_r: ", self.theta_r)
 	
+	'''
 	if(self.dirtyd_theta < 0.1): #integrate error only when the change in theta is small.
 		self.Int_theta += (error - prev_error)*dt/2
 		print("applying theta int") 
+	'''
 
-	Ftilde = kp_theta*(error) + ki_theta*self.Int_theta - kd_theta*self.dirtyd_theta
-	F = Fe + Ftilde
+	self.lon_integrator = self.lon_integrator + ((dt/2.0) * (lon_error + lon_prev_error))
+	
+	self.Fe = (m1*l1 - m2*l2)*g*np.cos(theta)/l1
+	
+	self.theta_dot = beta*self.theta_dot + (1-beta)*((theta - self.prev_theta)/dt)
+
+	xlon = np.matrix([[theta], [self.theta_dot]])
+
+	Ftilde = -self.Klon*xlon - self.kilon*self.lon_integrator
+	F = self.Fe + Ftilde #+ .5
+
+	#print("Force: ", F)
 
 	#lateral
-	error_yaw = -psi + self.psi_r
-	prev_error_yaw = self.prev_psi - self.psi_r
-	error_yaw_dot = error_yaw - prev_error_yaw
-	self.Int_psi += (error_yaw + prev_error_yaw)*dt/2
-	psi_dot = (psi - self.prev_psi)/dt
-
+	lat_error = -psi + self.psi_r
+	lat_prev_error = -self.prev_psi + self.psi_r
+	lat_error_dot = (lat_error - lat_prev_error)/dt
+	
+	'''
 	if(self.dirtyd_psi < 0.1): #integrate error only when the change in theta is small.
 		self.Int_psi += (error_yaw - prev_error_yaw)*dt/2
 		print("applying psi int")
+	'''
 
-	phi_r = kp_psi*(error_yaw) + ki_psi*self.Int_psi - kd_psi*psi_dot	
+	self.lat_integrator = self.lat_integrator + dt/2.0 * (lat_error + lat_prev_error)
 
-	error_roll = -phi + phi_r
-	phi_dot = (phi - self.prev_phi)/dt
-	tau = kp_phi * (error_roll) - kd_phi*phi_dot
+	self.phi_dot = beta*self.phi_dot + (1-beta)*((phi - self.prev_phi)/dt)
+	self.psi_dot = beta*self.psi_dot + (1-beta)*((psi - self.prev_psi)/dt)
+	
+	xlat = np.matrix([[phi], [psi], [self.phi_dot], [self.psi_dot]])
+
+	tau = -self.Klat*xlat - self.kilat*self.lat_integrator #+ 0.2 # tau_e = 0
 
 	# this should be in terms of tau and F.
-	T1 = tau / d
+	T1 = tau[0] / d
+
 	left_force, right_force = F/2+T1, F/2-T1
 
+	#print ("left_force:", left_force)
 	self.prev_theta = theta
 	self.prev_psi = psi
 	self.prev_phi = phi
-	self.prev_dirtyd_theta = self.dirtyd_theta
-	
-	#prints the gains once
-	#if(self.c < 1):
-	print("kp_theta: ", kp_theta, "kd_theta: ", kd_theta, "kp_phi: ", kp_phi, "kd_phi: ", kd_phi, "kp_psi: ", kp_psi, "kd_psi: ", kd_psi)
-	#	self.c += 1
 
         ##################################
 
@@ -210,6 +300,8 @@ class Controller():
             r_out = 0
         elif(r_out > 0.7):
             r_out = 0.7
+
+	#print("l_out: ", l_out, "r_out: ", r_out)
 
         # Pack up and send command
         command = Command()

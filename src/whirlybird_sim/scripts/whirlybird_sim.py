@@ -152,9 +152,13 @@ class WhirlybirdSim():
         thetad = state[4]
         psid = state[5]
 
+	
+
+	#print("command:", command, "km:", km)
         # adjust forces for gains
         fl = km * command[0]
         fr = km * command[1]
+
 
         xdot = np.zeros((6,1))
 
@@ -204,8 +208,9 @@ class WhirlybirdSim():
 	
 	xdot[3:6] = qdd
         ################################################
-	xdot[0,2,3,5] = 0 # this pins psi, psidot, phi, phidot
-        return xdot
+	#xdot[0,2,3,5] = [[],[],[],[]] # this pins psi, psidot, phi, phidot
+        #xdot[0], xdot[2], xdot[3], xdot[5] = 0, 0, 0, 0
+	return xdot
 
     def encoders(self):
         return self.state[0:3]

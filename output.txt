@@ -1,0 +1,66 @@
+... logging to /fse/cmcqueen/.ros/log/cfce1be4-ec53-11e8-bb0e-186024ad6be0/roslaunch-CONTROL-32-5879.log
+Checking log directory for disk usage. This may take awhile.
+Press Ctrl-C to interrupt
+Done checking log file disk usage. Usage is <1GB.
+]2;/fse/cmcqueen/FALL2018/controls/whirlybird_ws/src/whirlybird_controller/launch/controller_sim.launch
+[1mstarted roslaunch server http://CONTROL-32:42917/[0m
+
+SUMMARY
+========
+
+PARAMETERS
+ * /robot_description: <robot name="whir...
+ * /rosdistro: kinetic
+ * /rosversion: 1.12.14
+ * /use_gui: False
+ * /whirlybird/Jx: 0.0047
+ * /whirlybird/Jy: 0.0014
+ * /whirlybird/Jz: 0.0041
+ * /whirlybird/d: 0.178
+ * /whirlybird/g: 9.81
+ * /whirlybird/h: 0.65
+ * /whirlybird/km: 5.32955
+ * /whirlybird/l1: 0.85
+ * /whirlybird/l2: 0.3048
+ * /whirlybird/m1: 0.891
+ * /whirlybird/m2: 1.0
+ * /whirlybird/phi_max: 1.309
+ * /whirlybird/phi_min: -1.309
+ * /whirlybird/psi_max: 1.5708
+ * /whirlybird/psi_min: -1.5708
+ * /whirlybird/r: 0.12
+ * /whirlybird/sigma_gyro: 8.7266e-05
+ * /whirlybird/sigma_pixel: 0.05
+ * /whirlybird/theta_max: 0.785398
+ * /whirlybird/theta_min: -0.785398
+
+NODES
+  /
+    joint_state_publisher (whirlybird_description/joint_state_publisher.py)
+    robot_state_publisher (robot_state_publisher/robot_state_publisher)
+    rviz (rviz/rviz)
+    whirlybird_controller (whirlybird_controller/SScontroller.py)
+    whirlybird_sim (whirlybird_sim/whirlybird_sim.py)
+
+auto-starting new master
+[1mprocess[master]: started with pid [5889][0m
+[1mROS_MASTER_URI=http://localhost:11311[0m
+]2;/fse/cmcqueen/FALL2018/controls/whirlybird_ws/src/whirlybird_controller/launch/controller_sim.launch http://localhost:11311
+[1msetting /run_id to cfce1be4-ec53-11e8-bb0e-186024ad6be0[0m
+[1mprocess[rosout-1]: started with pid [5902][0m
+started core service [/rosout]
+[1mprocess[joint_state_publisher-2]: started with pid [5919][0m
+[1mprocess[robot_state_publisher-3]: started with pid [5920][0m
+[1mprocess[rviz-4]: started with pid [5935][0m
+[1mprocess[whirlybird_sim-5]: started with pid [5948][0m
+[1mprocess[whirlybird_controller-6]: started with pid [5955][0m
+[whirlybird_controller-6] killing on exit
+[whirlybird_sim-5] killing on exit
+[rviz-4] killing on exit
+[robot_state_publisher-3] killing on exit
+[joint_state_publisher-2] killing on exit
+[rosout-1] killing on exit
+[master] killing on exit
+shutting down processing monitor...
+... shutting down processing monitor complete
+[1mdone[0m
